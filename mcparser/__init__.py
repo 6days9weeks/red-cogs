@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Pattern
 
 import aiohttp
 import discord
@@ -50,7 +50,7 @@ class McParser(commands.Cog):
             return
         if message.channel.id not in self.channels.get(message.guild.id, []):
             return
-        regex = re.compile(r"https:/{2}paste.ee/p/[^\s/]+")
+        regex: Pattern = re.compile(r"https:/{2}paste.ee/p/[^\s/]+")
         if found := regex.search(message.content):
             async with self.session.get(str(found.group()).replace("/p/", "/r/")) as r:
                 log = await r.text()
