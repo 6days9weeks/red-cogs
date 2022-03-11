@@ -1,5 +1,5 @@
 import re
-from typing import List, Union
+from typing import List, Pattern, Union
 
 
 def custom_log_parser(customs, log: str) -> Union[List[str], None]:
@@ -58,14 +58,14 @@ def fabric_api_missing(log: str) -> Union[str, None]:
 
 
 def multimc_in_onedrive_managed_folder(log: str) -> Union[str, None]:
-    REGEX = re.compile(r"Minecraft folder is:\nC:/.+/.+/OneDrive")
+    REGEX: Pattern = re.compile(r"Minecraft folder is:\nC:/.+/.+/OneDrive")
     if REGEX.search(log):
         return "❗ MultiMC is located in a folder managed by OneDrive. OneDrive messes with Minecraft folders while the game is running, and this often leads to crashes.\nYou should move the MultiMC folder to a different folder."
     return None
 
 
 def major_java_version_change(log: str) -> Union[str, None]:
-    REGEX = re.compile(r"Java is version (1.)??(?P<ver>[6-9]|[1-9][0-9])+\..+,")
+    REGEX: Pattern = re.compile(r"Java is version (1.)??(?P<ver>[6-9]|[1-9][0-9])+\..+,")
     if found := re.findall(REGEX, log):
         if int(list(found[0])[1]) == 8:
             return None
@@ -91,7 +91,7 @@ def java_architecture(log: str) -> Union[str, None]:
 
 
 def ram_amount(log: str) -> Union[str, None]:
-    REGEX = re.compile(r"-Xmx(?P<amount>[0-9]+)m[,\]]")
+    REGEX: Pattern = re.compile(r"-Xmx(?P<amount>[0-9]+)m[,\]]")
     if found := re.findall(REGEX, log):
         amount = int(found[0]) / 1000.0
         if amount > 10.0:
