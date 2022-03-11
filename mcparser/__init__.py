@@ -168,7 +168,7 @@ class McParser(commands.Cog):
             await ctx.send("Index cannot be 0.")
             return
         try:
-            parser = self.customs.get(ctx.guild.id)[index - 1]
+            parser = list(self.customs.get(ctx.guild.id))[index - 1]
         except IndexError:
             await ctx.send(f"Invalid number check numbers using `{ctx.clean_prefix}mcparser custom list`.")
             return
