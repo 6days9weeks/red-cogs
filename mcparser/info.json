@@ -8,7 +8,7 @@
         "sora#0666 (696828906191454221)"
     ],
     "required_cogs": {},
-    "requirements": ["akinator.py[fast_async]"],
+    "requirements": [],
     "tags": [
         "fun"
     ],
