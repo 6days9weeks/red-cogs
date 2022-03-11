@@ -56,7 +56,8 @@ class McParser(commands.Cog):
                 log = await r.text()
             data = parse_all(log)
             if self.customs.get(message.guild.id, None):
-                data.extend(custom_log_parser(self.customs[message.guild.id], log))
+                if custom := custom_log_parser(self.customs[message.guild.id], log):
+                    data.extend(custom)
             if len(data) != 0:
                 embed = discord.Embed(
                     title="Automated Response: (Warning: Experimental)",
