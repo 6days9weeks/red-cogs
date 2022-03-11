@@ -144,8 +144,8 @@ class McParser(commands.Cog):
             await ctx.send("No custom log parsers added.")
             return
         msg = ""
-        for x in self.customs.get(ctx.guild.id):
-            msg += f"--------------------\n**Caused By:** {self.customs[ctx.guild.id][x]}\n**Solved By:** {x}\n--------------------\n"
+        for y, x in enumerate(self.customs.get(ctx.guild.id), 1):
+            msg += f"--------------------\n**Index:** {y}\n**Caused By:** {self.customs[ctx.guild.id][x]}\n**Solved By:** {x}\n--------------------\n"
         embeds: List[discord.Embed] = []
         for page in pagify(msg):
             embeds.append(
@@ -159,17 +159,22 @@ class McParser(commands.Cog):
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @minecraftparser_custom.command(name="remove")
-    async def minecraftparser_custom_remove(self, ctx: commands.Context, *, solve: str) -> None:
+    async def minecraftparser_custom_remove(self, ctx: commands.Context, index: int) -> None:
         """Remove a custom log parser"""
         if not self.customs.get(ctx.guild.id):
             await ctx.send("No custom log parsers added.")
             return
-        if solve not in self.customs.get(ctx.guild.id):
-            await ctx.send("Custom log parser not found.")
+        if index == 0:
+            await ctx.send("Index cannot be 0.")
             return
-        del self.customs[ctx.guild.id][solve]
+        try:
+            parser = self.customs.get(ctx.guild.id)[index - 1]
+        except IndexError:
+            await ctx.send(f"Invalid number check numbers using `{ctx.clean_prefix}mcparser custom list`.")
+            return
+        del self.customs[ctx.guild.id][parser]
         async with self.config.guild(ctx.guild).custom_logs() as custom:
-            del custom[solve]
+            del custom[parser]
         await ctx.send("Custom log parser removed.")
 
 
