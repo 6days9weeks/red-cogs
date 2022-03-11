@@ -2,7 +2,7 @@ import re
 from typing import List, Union
 
 
-def custom_log_parser(customs, log: str):
+def custom_log_parser(customs, log: str) -> Union[List[str], None]:
     LIST: List[str] = []
     for k in customs:
         if customs[k] in log:
