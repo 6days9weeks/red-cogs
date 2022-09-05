@@ -209,20 +209,20 @@ class GlobalBan(commands.Cog):
             except (discord.HTTPException, discord.Forbidden) as e:
                 logger.exception(e)
 
-   @commands.Cog.listener()
-   async def on_guild_role_update(self, before: discord.Role, after: discord.Role) -> None:
-       if not after.is_bot_managed():
-           return
-       if after.members and after.members[0].id != self.bot.user.id:
-           return
-       if not after.guild.me.guild_permissions.ban_members:
-           logger.info(
-               f"Leaving {after.guild.name}/{after.guild.id} as they removed ban members permission from me."
-           )
-           try:
-               await after.guild.leave()
-           except discord.NotFound:
-               return
+    @commands.Cog.listener()
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role) -> None:
+        if not after.is_bot_managed():
+            return
+        if after.members and after.members[0].id != self.bot.user.id:
+            return
+        if not after.guild.me.guild_permissions.ban_members:
+            logger.info(
+                f"Leaving {after.guild.name}/{after.guild.id} as they removed ban members permission from me."
+            )
+            try:
+                await after.guild.leave()
+            except discord.NotFound:
+                return
 
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
