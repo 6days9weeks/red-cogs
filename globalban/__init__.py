@@ -16,7 +16,7 @@ logger = getLogger("red.dia.GlobalBan")
 class GlobalBan(commands.Cog):
     """Ban users globally from all servers I'm in."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "dia ♡#0666 (696828906191454221)"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
