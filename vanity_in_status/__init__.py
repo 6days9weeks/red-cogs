@@ -4,6 +4,7 @@ from logging import Logger, getLogger
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
+from discord.ext import tasks
 
 
 class VanityInStatus(commands.Cog):
@@ -28,7 +29,25 @@ class VanityInStatus(commands.Cog):
             "toggled": False,
             "channel": None,
         }
+        self.vanity_cache = {}
+        self.update_cache.start()
         self.config.register_guild(**default_guild)
+    
+    def cog_unload(self):
+        if self.update_cache.is_running():
+            self.update_cache.cancel()
+    
+    @tasks.loop(minutes=5)
+    async def update_cache(self):
+        data = await self.config.all_guilds()
+        for x in data:
+            guild = self.bot.get_guild(x)
+            if "VANITY_URL" in guild.features:
+                self.vanity_cache[guild.id] = await guild.vanity_invite()
+    
+    @update_cache.before_loop
+    async def before_update_cache(self):
+        await self.bot.wait_until_red_ready()
 
     async def safe_send(self, channel: discord.TextChannel, embed: discord.Embed) -> None:
         try:
@@ -50,7 +69,7 @@ class VanityInStatus(commands.Cog):
             return
         if not "VANITY_URL" in guild.features:
             return
-        vanity: str = "/" + str(await guild.vanity_invite()).split("/")[-1]
+        vanity: str = "/" + str(self.vanity_cache[guild.id]).split("/")[-1]
         role: discord.Role = guild.get_role(int(data["role"]))
         log_channel: discord.TextChannel = guild.get_channel(int(data["channel"]))
         if not role:
@@ -74,7 +93,7 @@ class VanityInStatus(commands.Cog):
         ]
         has_in_status_embed = discord.Embed(
             color=0x2F3136,
-            description=f"Thanks {after.mention} for having {vanity} in your status.\nI rewarded you with {role.mention} :c",
+            description=f"Thanks {after.mention} for having {vanity} in your status.\nI rewarded you with {role.mention}",
         )
 
         if not before_custom_activity and after_custom_activity:
@@ -154,6 +173,8 @@ class VanityInStatus(commands.Cog):
         """Toggle vanity checker for current server on/off."""
         toggled = not await self.config.guild(ctx.guild).toggled()
         await self.config.guild(ctx.guild).toggled.set(toggled)
+        if "VANITY_URL" in guild.features:
+            self.vanity_cache[guild.id] = await guild.vanity_invite()
         await ctx.send(
             f"Vanity status tracking for current server is now {'on' if toggled else 'off'}."
         )
