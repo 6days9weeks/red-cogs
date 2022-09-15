@@ -215,4 +215,6 @@ class VanityInStatus(commands.Cog):
 
 
 def setup(bot: Red):
-    bot.add_cog(VanityInStatus(bot))
+    cog = VanityInStatus(bot)
+    bot.add_cog(cog)
+    await cog.update_cache()
