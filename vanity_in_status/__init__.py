@@ -29,6 +29,7 @@ class VanityInStatus(commands.Cog):
             "toggled": False,
             "channel": None,
         }
+        self.first_loop_done = False
         self.vanity_cache = {}
         self.update_cache.start()
         self.config.register_guild(**default_guild)
@@ -44,6 +45,8 @@ class VanityInStatus(commands.Cog):
             guild = self.bot.get_guild(x)
             if "VANITY_URL" in guild.features:
                 self.vanity_cache[guild.id] = await guild.vanity_invite()
+        if not self.first_loop_done:
+            self.first_loop_done = True
     
     @update_cache.before_loop
     async def before_update_cache(self):
@@ -59,6 +62,8 @@ class VanityInStatus(commands.Cog):
 
     @commands.Cog.listener("on_member_update")
     async def on_vanity_trigger(self, before: discord.Member, after: discord.Member) -> None:
+        if not self.first_loop_done:
+            return
         if before.bot:
             return
         guild: discord.Guild = after.guild
