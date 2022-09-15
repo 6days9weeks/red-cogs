@@ -4,7 +4,6 @@ from logging import Logger, getLogger
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from discord.ext import tasks
 
 
 class VanityInStatus(commands.Cog):
@@ -29,28 +28,18 @@ class VanityInStatus(commands.Cog):
             "toggled": False,
             "channel": None,
         }
-        self.first_loop_done = False
+        self.cached = False
         self.vanity_cache = {}
-        self.update_cache.start()
         self.config.register_guild(**default_guild)
     
-    def cog_unload(self):
-        if self.update_cache.is_running():
-            self.update_cache.cancel()
-    
-    @tasks.loop(minutes=5)
     async def update_cache(self):
         data = await self.config.all_guilds()
         for x in data:
             guild = self.bot.get_guild(x)
             if "VANITY_URL" in guild.features:
                 self.vanity_cache[guild.id] = await guild.vanity_invite()
-        if not self.first_loop_done:
-            self.first_loop_done = True
-    
-    @update_cache.before_loop
-    async def before_update_cache(self):
-        await self.bot.wait_until_red_ready()
+        if not self.cached:
+            self.cached = True
 
     async def safe_send(self, channel: discord.TextChannel, embed: discord.Embed) -> None:
         try:
@@ -62,8 +51,8 @@ class VanityInStatus(commands.Cog):
 
     @commands.Cog.listener("on_member_update")
     async def on_vanity_trigger(self, before: discord.Member, after: discord.Member) -> None:
-        if not self.first_loop_done:
-            return
+        if not self.cached:
+            await self.update_cache()
         if before.bot:
             return
         guild: discord.Guild = after.guild
@@ -179,7 +168,7 @@ class VanityInStatus(commands.Cog):
         toggled = not await self.config.guild(ctx.guild).toggled()
         await self.config.guild(ctx.guild).toggled.set(toggled)
         if "VANITY_URL" in guild.features:
-            self.vanity_cache[guild.id] = await guild.vanity_invite()
+            await self.update_cache()
         await ctx.send(
             f"Vanity status tracking for current server is now {'on' if toggled else 'off'}."
         )
