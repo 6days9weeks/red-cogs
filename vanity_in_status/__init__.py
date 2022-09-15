@@ -89,6 +89,7 @@ class VanityInStatus(commands.Cog):
             color=0x2F3136,
             description=f"Thanks {after.mention} for having {vanity} in your status.\nI rewarded you with {role.mention}",
         )
+        has_in_status_embed.set_footer(text=self.bot.user.name, icon_url="https://cdn.discordapp.com/emojis/886356428116357120.gif")
 
         if not before_custom_activity and after_custom_activity:
             if after_custom_activity[0].name is not None:
