@@ -33,6 +33,7 @@ class VanityInStatus(commands.Cog):
         self.config.register_guild(**default_guild)
     
     async def update_cache(self):
+        await self.bot.wait_until_red_ready()
         data = await self.config.all_guilds()
         for x in data:
             guild = self.bot.get_guild(x)
@@ -214,8 +215,7 @@ class VanityInStatus(commands.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
-
-async def setup(bot: Red):
+def setup(bot: Red):
     cog = VanityInStatus(bot)
     bot.add_cog(cog)
-    await cog.update_cache()
+    bot.loop.create_task(cog.update_cache())
