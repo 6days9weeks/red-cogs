@@ -173,7 +173,7 @@ class VanityInStatus(commands.Cog):
         toggled = not await self.config.guild(ctx.guild).toggled()
         await self.config.guild(ctx.guild).toggled.set(toggled)
         if "VANITY_URL" in ctx.guild.features:
-            await self.update_cache()
+            self.vanity_cache[ctx.guild.id] = await ctx.guild.vanity_invite()
         await ctx.send(
             f"Vanity status tracking for current server is now {'on' if toggled else 'off'}."
         )
