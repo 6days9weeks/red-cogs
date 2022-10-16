@@ -37,7 +37,7 @@ class VanityInStatus(commands.Cog):
         data = await self.config.all_guilds()
         for x in data:
             guild = self.bot.get_guild(x)
-            if guild.
+            if guild:
                 if "VANITY_URL" in guild.features:
                     self.vanity_cache[guild.id] = await guild.vanity_invite()
         if not self.cached:
