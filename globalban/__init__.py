@@ -29,7 +29,7 @@ class GlobalBan(commands.Cog):
     def __init__(self, bot: Red):
         self.bot: Red = bot
         self.config = Config.get_conf(self, identifier=0x33039392, force_registration=True)
-        self.config.register_global(**{"banned": []})
+        self.config.register_global(**{"banned": [], "reasons": {}})
         self.config.register_guild(**{"banned": []})
 
     @commands.command()
@@ -44,6 +44,9 @@ class GlobalBan(commands.Cog):
         async with self.config.banned() as f:
             if user.id not in f:
                 f.append(user.id)
+        old_conf = await self.config.reasons()
+        old_conf[user.id] = reason
+        await self.config.old_conf.set(old_conf)
         banned_guilds: List[discord.Guild] = []
         couldnt_ban: List[discord.Guild] = []
         for guild in self.bot.guilds:
@@ -273,10 +276,11 @@ class GlobalBan(commands.Cog):
         """
         global_banned = await self.config.banned()
         guild_banned = await self.config.guild(guild).banned()
+        global_reason = (await self.config.reasons()).get(user.id)
 
         if user.id in global_banned:
             try:
-                await guild.ban(user, reason="Global banned by bot owner.")
+                await guild.ban(user, reason=global_reason if global_reason else "Global banned by bot owner.")
             except (discord.HTTPException, discord.Forbidden) as e:
                 logger.exception(e)
 
