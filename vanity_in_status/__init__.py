@@ -1,4 +1,5 @@
 import typing
+import asyncio
 from logging import Logger, getLogger
 
 import discord
@@ -40,6 +41,7 @@ class VanityInStatus(commands.Cog):
             if guild:
                 if "VANITY_URL" in guild.features:
                     self.vanity_cache[guild.id] = await guild.vanity_invite()
+                    await asyncio.sleep(0.5)
         if not self.cached:
             self.cached = True
 
