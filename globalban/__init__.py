@@ -184,7 +184,7 @@ class GlobalBan(commands.Cog):
             await menu(ctx, couldnt_embeds, DEFAULT_CONTROLS)
 
     @commands.command()
-    @commands.is_owner()
+    @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def hardban(
         self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
@@ -210,7 +210,7 @@ class GlobalBan(commands.Cog):
         )
 
     @commands.command()
-    @commands.is_owner()
+    @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def hardunban(
         self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
@@ -253,7 +253,7 @@ class GlobalBan(commands.Cog):
         await menu(ctx, pages, DEFAULT_CONTROLS)
 
     @commands.command()
-    @commands.is_owner()
+    @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def listhardban(self, ctx: commands.Context) -> None:
         """List all hard banned users."""
