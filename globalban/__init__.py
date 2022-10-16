@@ -16,7 +16,7 @@ logger = getLogger("red.dia.GlobalBan")
 class GlobalBan(commands.Cog):
     """Ban users globally from all servers I'm in."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
     __author__ = "dia ♡#0666 (696828906191454221)"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -30,6 +30,7 @@ class GlobalBan(commands.Cog):
         self.bot: Red = bot
         self.config = Config.get_conf(self, identifier=0x33039392, force_registration=True)
         self.config.register_global(**{"banned": []})
+        self.config.register_guild(**{"banned": []})
 
     @commands.command()
     @commands.is_owner()
@@ -182,6 +183,58 @@ class GlobalBan(commands.Cog):
     @commands.command()
     @commands.is_owner()
     @commands.guild_only()
+    async def hardban(
+        self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
+    ) -> None:
+        """Hard ban a user from current server."""
+        if not reason:
+            reason = f"Hard ban by {ctx.author} (ID: {ctx.author.id})"
+        async with self.config.guild(ctx.guild).banned() as f:
+            if user.id not in f:
+                f.append(user.id)
+        try:
+            await ctx.guild.ban(user, reason=reason)
+        except (discord.HTTPException, discord.Forbidden):
+            return await ctx.send(
+                embed=discord.Embed(
+                    description=f"Couldn't hard ban {user}."
+                )
+            )
+        await ctx.send(
+            embed=discord.Embed(
+                description=f"Hard banned {user}."
+            )
+        )
+
+    @commands.command()
+    @commands.is_owner()
+    @commands.guild_only()
+    async def hardunban(
+        self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
+    ) -> None:
+        """Unban a hard banned user from current server."""
+        if not reason:
+            reason = f"Hard unban by {ctx.author} (ID: {ctx.author.id})"
+        async with self.config.guild(ctx.guild).banned() as f:
+            if user.id in f:
+                f.remove(user.id)
+        try:
+            await guild.unban(user, reason=reason)
+        except (discord.HTTPException, discord.Forbidden):
+            return await ctx.send(
+                embed=discord.Embed(
+                    description="Couldn't unban {user}."
+                )
+            )
+        await ctx.send(
+            embed=discord.Embed(
+                description=f"Unbanned {user}."
+            )
+        ) 
+
+    @commands.command()
+    @commands.is_owner()
+    @commands.guild_only()
     async def listglobalban(self, ctx: commands.Context) -> None:
         """List all global banned users."""
         message: str = ""
@@ -196,16 +249,40 @@ class GlobalBan(commands.Cog):
             pages.append(page)
         await menu(ctx, pages, DEFAULT_CONTROLS)
 
+    @commands.command()
+    @commands.is_owner()
+    @commands.guild_only()
+    async def listhardban(self, ctx: commands.Context) -> None:
+        """List all hard banned users."""
+        message: str = ""
+        pages: List[str] = []
+        async with self.config.guild(ctx.guild).banned() as ff:
+            if len(ff) == 0:
+                return await ctx.send("No user has been hard banned.")
+            for x in ff:
+                x = await self.bot.get_or_fetch_user(x)
+                message += f"{str(x)} - ({x.id})"
+        for page in chat.pagify(message):
+            pages.append(page)
+        await menu(ctx, pages, DEFAULT_CONTROLS)
+
     @commands.Cog.listener()
     async def on_member_unban(self, guild: discord.Guild, user: discord.User):
         """
         Ban global banned users auto-fucking-matically
         """
-        async with self.config.banned() as f:
-            if user.id not in f:
-                return
+        global_banned = await self.config.banned()
+        guild_banned = await self.config.guild(guild).banned()
+
+        if user.id in global_banned:
             try:
                 await guild.ban(user, reason="Global banned by bot owner.")
+            except (discord.HTTPException, discord.Forbidden) as e:
+                logger.exception(e)
+
+        if user.id in guild_banned:
+            try:
+                await guild.ban(user, reason="Hard banned by bot owner.")
             except (discord.HTTPException, discord.Forbidden) as e:
                 logger.exception(e)
 
