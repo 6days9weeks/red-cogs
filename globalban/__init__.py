@@ -222,7 +222,7 @@ class GlobalBan(commands.Cog):
             if user.id in f:
                 f.remove(user.id)
         try:
-            await guild.unban(user, reason=reason)
+            await ctx.guild.unban(user, reason=reason)
         except (discord.HTTPException, discord.Forbidden):
             return await ctx.send(
                 embed=discord.Embed(
