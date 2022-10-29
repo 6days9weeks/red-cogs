@@ -28,6 +28,7 @@ class VanityInStatus(commands.Cog):
             "role": None,
             "toggled": False,
             "channel": None,
+            "vanity": None,
         }
         self.cached = False
         self.vanity_cache = {}
@@ -37,11 +38,9 @@ class VanityInStatus(commands.Cog):
         await self.bot.wait_until_red_ready()
         data = await self.config.all_guilds()
         for x in data:
-            guild = self.bot.get_guild(x)
-            if guild:
-                if "VANITY_URL" in guild.features:
-                    self.vanity_cache[guild.id] = await guild.vanity_invite()
-                    await asyncio.sleep(0.5)
+            vanity = data[x]["vanity"]
+            if vanity:
+                self.vanity_cache[x] = vanity
         if not self.cached:
             self.cached = True
 
@@ -67,7 +66,7 @@ class VanityInStatus(commands.Cog):
             return
         if not "VANITY_URL" in guild.features:
             return
-        vanity: str = "/" + str(self.vanity_cache[guild.id]).split("/")[-1]
+        vanity: str = "/" + self.vanity_cache[guild.id]
         role: discord.Role = guild.get_role(int(data["role"]))
         log_channel: discord.TextChannel = guild.get_channel(int(data["channel"]))
         if not role:
@@ -168,14 +167,14 @@ class VanityInStatus(commands.Cog):
         ...
 
     @vanity.command()
-    async def toggle(self, ctx: commands.Context) -> None:
+    async def toggle(self, ctx: commands.Context, on: bool, vanity: str) -> None:
         """Toggle vanity checker for current server on/off."""
-        toggled = not await self.config.guild(ctx.guild).toggled()
-        await self.config.guild(ctx.guild).toggled.set(toggled)
+        await self.config.guild(ctx.guild).toggled.set(on)
+        await self.config.guild(ctx.guild).vanity.set(vanity)
         if "VANITY_URL" in ctx.guild.features:
-            self.vanity_cache[ctx.guild.id] = await ctx.guild.vanity_invite()
+            self.vanity_cache[ctx.guild.id] = vanity
         await ctx.send(
-            f"Vanity status tracking for current server is now {'on' if toggled else 'off'}."
+            f"Vanity status tracking for current server is now {'on' if on else 'off'} and set to {vanity}."
         )
 
     @vanity.command()
