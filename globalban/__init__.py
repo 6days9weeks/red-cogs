@@ -46,7 +46,7 @@ class GlobalBan(commands.Cog):
                 f.append(user.id)
         old_conf = await self.config.reasons()
         old_conf[user.id] = reason
-        await self.config.old_conf.set(old_conf)
+        await self.config.reasons.set(old_conf)
         banned_guilds: List[discord.Guild] = []
         couldnt_ban: List[discord.Guild] = []
         for guild in self.bot.guilds:
