@@ -1,9 +1,9 @@
+from logging import getLogger
 from typing import List, Optional
 
 import discord
-from redbot.core import commands, Config
+from redbot.core import Config, commands
 from redbot.core.bot import Red
-from logging import getLogger
 from redbot.core.utils import chat_formatting as chat
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
@@ -198,16 +198,8 @@ class GlobalBan(commands.Cog):
         try:
             await ctx.guild.ban(user, reason=reason)
         except (discord.HTTPException, discord.Forbidden):
-            return await ctx.send(
-                embed=discord.Embed(
-                    description=f"Couldn't hard ban {user}."
-                )
-            )
-        await ctx.send(
-            embed=discord.Embed(
-                description=f"Hard banned {user}."
-            )
-        )
+            return await ctx.send(embed=discord.Embed(description=f"Couldn't hard ban {user}."))
+        await ctx.send(embed=discord.Embed(description=f"Hard banned {user}."))
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -224,16 +216,8 @@ class GlobalBan(commands.Cog):
         try:
             await ctx.guild.unban(user, reason=reason)
         except (discord.HTTPException, discord.Forbidden):
-            return await ctx.send(
-                embed=discord.Embed(
-                    description="Couldn't unban {user}."
-                )
-            )
-        await ctx.send(
-            embed=discord.Embed(
-                description=f"Unbanned {user}."
-            )
-        ) 
+            return await ctx.send(embed=discord.Embed(description="Couldn't unban {user}."))
+        await ctx.send(embed=discord.Embed(description=f"Unbanned {user}."))
 
     @commands.command()
     @commands.is_owner()
@@ -280,7 +264,9 @@ class GlobalBan(commands.Cog):
 
         if user.id in global_banned:
             try:
-                await guild.ban(user, reason=global_reason if global_reason else "Global banned by bot owner.")
+                await guild.ban(
+                    user, reason=global_reason if global_reason else "Global banned by bot owner."
+                )
             except (discord.HTTPException, discord.Forbidden) as e:
                 logger.exception(e)
 

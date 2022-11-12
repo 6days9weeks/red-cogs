@@ -1,0 +1,4 @@
+Red-DiscordBot
+black 
+isort
+pycln
