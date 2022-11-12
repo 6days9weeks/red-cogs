@@ -69,6 +69,8 @@ class AwayFromKeyboard(RedCog):
             return
         for mention in message.mentions:
             data = await self.db.user(mention).all()
+            if not data["afk"]:
+                continue
             embed = discord.Embed(color=0x2F3136)
             embed.description = "{} is AFK: **{}** - <t:{}:R>".format(
                 mention.mention,
