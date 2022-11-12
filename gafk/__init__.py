@@ -37,7 +37,7 @@ class AwayFromKeyboard(RedCog):
         await ctx.reply("You are now AFK.")
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message_without_command(self, message: discord.Message):
         if message.author.bot:
             return
         data = await self.db.user(message.author).all()
