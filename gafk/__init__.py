@@ -40,8 +40,8 @@ class AwayFromKeyboard(RedCog):
     async def on_message_without_command(self, message: discord.Message):
         if message.author.bot:
             return
-        data = await self.db.user(message.author).all()
-        if data["afk"]:
+        adata = await self.db.user(message.author).all()
+        if adata["afk"]:
             async with self.db.user(message.author).all() as new_data:
                 new_data["afk"] = False
                 new_data["reason"] = None
@@ -52,7 +52,7 @@ class AwayFromKeyboard(RedCog):
                 humanize_timedelta(
                     timedelta=(
                         datetime.datetime.now(datetime.timezone.utc)
-                        - datetime.datetime.utcfromtimestamp(data["timestamp"]).replace(
+                        - datetime.datetime.utcfromtimestamp(adata["timestamp"]).replace(
                             tzinfo=datetime.timezone.utc
                         )
                     )
