@@ -36,7 +36,7 @@ class AwayFromKeyboard(RedCog):
             data["timestamp"] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
         embed = discord.Embed()
         embed.color = 0x2F3136
-        embed.description = "Your are now AFK."
+        embed.description = "> You are now AFK."
         await ctx.reply(embed=embed)
 
     @commands.Cog.listener()
