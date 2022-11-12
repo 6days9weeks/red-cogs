@@ -34,7 +34,10 @@ class AwayFromKeyboard(RedCog):
             data["afk"] = True
             data["reason"] = reason if reason else "No reason provided."
             data["timestamp"] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
-        await ctx.reply("You are now AFK.")
+        embed = discord.Embed()
+        embed.color = 0x2F3136
+        embed.description = "Your are now AFK."
+        await ctx.reply(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_without_command(self, message: discord.Message):
