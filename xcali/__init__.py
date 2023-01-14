@@ -1,6 +1,6 @@
 import datetime
 from io import BytesIO
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import aiohttp
@@ -56,7 +56,7 @@ class XCali(commands.Cog):
 
     async def _extract_video_info(
         self, url: yarl.URL
-    ) -> dict[str, Any] | None:
+    ) -> Union[dict[str, Any], None]:
         info = await sync_as_async(self.bot, ydl.extract_info, str(url), download=False)
 
         if not info:
