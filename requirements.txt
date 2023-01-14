@@ -1,4 +1,6 @@
 Red-DiscordBot
 black 
 isort
+aiohttp
+yt_dlp
 pycln
