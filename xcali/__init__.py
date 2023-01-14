@@ -1,7 +1,7 @@
 import datetime
 from io import BytesIO
 from typing import Any, Optional, Tuple, Union
-from urllib.parse import urlparse
+from urllib.parse import urlparse # noqa
 
 import aiohttp
 import discord
@@ -20,6 +20,7 @@ class XCali(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=0x28411747)
+        self.config.register_guild(enabled=False)
         self.session = aiohttp.ClientSession()
 
     def cog_unload(self) -> None:
@@ -38,7 +39,7 @@ class XCali(commands.Cog):
         Gets the video info from the Invidious API.
         """
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"  # noqa
         }
         async with self.session.get(
             f"https://{INVIDIOUS_DOMAIN}/api/v1/videos/{video_id}?local=true",
@@ -47,17 +48,15 @@ class XCali(commands.Cog):
             if response.status == 200:
                 return await response.json()
 
-    async def _download_file(self, url: str, filename: str) -> Tuple[int, discord.File]:
-        async with self.session.get(url, allow_redirects=True, timeout=300) as response:
+    async def _download_file(self, url: str, filename: str) -> Tuple[int, discord.File]:  # noqa
+        async with self.session.get(url, allow_redirects=True, timeout=300) as response:  # noqa
             if response.status != 200:
                 return
             data = await response.read()
             return len(data), discord.File(BytesIO(data), filename)
 
-    async def _extract_video_info(
-        self, url: yarl.URL
-    ) -> Union[dict[str, Any], None]:
-        info = await sync_as_async(self.bot, ydl.extract_info, str(url), download=False)
+    async def _extract_video_info(self, url: yarl.URL) -> Union[dict[str, Any], None]:  # noqa
+        info = await sync_as_async(self.bot, ydl.extract_info, str(url), download=False)  # noqa
 
         if not info:
             return
@@ -86,6 +85,8 @@ class XCali(commands.Cog):
         video_id = self._extract_video_id(message.content)
         if not video_id:
             return
+        if not self.config.guild(message.guild).enabled():
+            return
         async with message.channel.typing():
             video_info = await self._get_video_info(video_id)
             if not video_info:
@@ -99,11 +100,11 @@ class XCali(commands.Cog):
             )
             embed.description = video_info["description"].split("\n")[0]
             embed.set_footer(
-                text=f"views: {video_info['viewCount']:,} | likes: {video_info['likeCount']:,}"
+                text=f"views: {video_info['viewCount']:,} | likes: {video_info['likeCount']:,}"  # noqa
             )
             urls = []
             for video_format in video_info["formatStreams"]:
-                if not video_format.get("container") or not video_format.get("encoding"):
+                if not video_format.get("container") or not video_format.get("encoding"):  # noqa
                     continue
                 urls.append(video_format)
             limit = message.guild.filesize_limit
@@ -113,7 +114,7 @@ class XCali(commands.Cog):
             video = video[0]
             if "clen" in video.keys() and int(video["clen"]) > limit:
                 return
-            count, dlvideo = await self._download_file(video["url"], f"yt.{video['container']}")
+            count, dlvideo = await self._download_file(video["url"], f"yt.{video['container']}")  # noqa
             if count > limit:
                 return
             await message.channel.send(
@@ -136,12 +137,14 @@ class XCali(commands.Cog):
             url = match[1]
         else:
             return
+        if not self.config.guild(message.guild).enabled():
+            return
         url = yarl.URL(url)
         async with message.channel.typing():
             info = await self._extract_video_info(url)
             if not info:
                 return
-            filesize_limit = (message.guild and message.guild.filesize_limit) or 8388608
+            filesize_limit = (message.guild and message.guild.filesize_limit) or 8388608  # noqa
             count, dlvideo = await self._download_file(
                 self.find_proper_url(info)["url"], f"tiktok.{info['ext']}"
             )
@@ -153,13 +156,21 @@ class XCali(commands.Cog):
             embed.description = info["description"]
             embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             embed.set_footer(
-                text=f"❤️ {info['like_count']:,} | 💬 {info['comment_count']:,} | 📺 {info['view_count']:,} | 🔁 {info['repost_count']:,}"
+                text=f"❤️ {info['like_count']:,} | 💬 {info['comment_count']:,} | 📺 {info['view_count']:,} | 🔁 {info['repost_count']:,}"  # noqa
             )
             await message.channel.send(
                 embed=embed,
                 file=dlvideo,
             )
             await message.delete()
+
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    async def rpst(self, ctx: commands.Context) -> None:
+        """Toggle reposting."""
+        old = await self.config.guild(ctx.guild).enabled()
+        await self.config.guild(ctx.guild).enabled.set(not old)
+        await ctx.send(f"Reposting is now {'enabled' if not old else 'disabled'}.")  # noqa
 
 
 async def setup(bot: Red) -> None:
