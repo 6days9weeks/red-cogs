@@ -119,9 +119,8 @@ class XCali(commands.Cog):
             await message.channel.send(
                 embed=embed,
                 file=dlvideo,
-                reference=message.to_reference(fail_if_not_exists=False),
-                mention_author=False,
             )
+            await message.delete()
 
     @commands.Cog.listener("on_message")
     async def on_tiktok_trigger(self, message: discord.Message) -> None:
@@ -159,9 +158,8 @@ class XCali(commands.Cog):
             await message.channel.send(
                 embed=embed,
                 file=dlvideo,
-                reference=message.to_reference(fail_if_not_exists=False),
-                mention_author=False,
             )
+            await message.delete()
 
 
 async def setup(bot: Red) -> None:
