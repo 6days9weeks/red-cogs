@@ -85,7 +85,7 @@ class XCali(commands.Cog):
         video_id = self._extract_video_id(message.content)
         if not video_id:
             return
-        if not self.config.guild(message.guild).enabled():
+        if not await self.config.guild(message.guild).enabled():
             return
         async with message.channel.typing():
             video_info = await self._get_video_info(video_id)
@@ -137,7 +137,7 @@ class XCali(commands.Cog):
             url = match[1]
         else:
             return
-        if not self.config.guild(message.guild).enabled():
+        if not await self.config.guild(message.guild).enabled():
             return
         url = yarl.URL(url)
         async with message.channel.typing():
