@@ -16,6 +16,11 @@ guild_config = {"channels": [], "custom_logs": {}}
 class McParser(commands.Cog):
     """Parse common errors and send a response on how-to solve."""
 
+    def get_avatar_url(self, user: Union[discord.User, discord.Member]) -> str:
+        if discord.version_info.major == 1:
+            return user.avatar_url
+        return user.display_avatar.url
+
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=0xEAA1E2D8001000, force_registration=True)
@@ -24,8 +29,12 @@ class McParser(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.config.register_guild(**guild_config)
 
-    def cog_unload(self) -> None:
-        self.bot.loop.create_task(self.session.close())
+    if discord.version_info.major >= 2:
+        async def cog_unload(self) -> None:
+            await self.session.close()
+    else:
+        def cog_unload(self) -> None:
+            self.bot.loop.create_task(self.session.close())
 
     async def initialize(self) -> None:
         data = await self.config.all_guilds()
@@ -68,7 +77,7 @@ class McParser(commands.Cog):
                         name=x.split()[0], value=x.replace(x.split()[0], ""), inline=False
                     )
                 embed.set_footer(
-                    icon_url=self.bot.user.avatar_url,
+                    icon_url=self.get_avatar_url(self.bot.user),
                     text=f"This might not solve your problem, but it could be worth a try.\nTriggered by: {str(message.author)}",
                 )
                 await message.channel.send(embed=embed)
@@ -182,5 +191,5 @@ class McParser(commands.Cog):
 
 async def setup(bot: Red):
     cog = McParser(bot)
-    bot.add_cog(cog)
+    await discord.utils.maybe_coroutine(bot.add_cog, cog)
     await cog.initialize()

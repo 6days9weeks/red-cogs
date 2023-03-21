@@ -26,6 +26,11 @@ class GlobalBan(commands.Cog):
             f"{pre_processed}\n**Cog Version:** {self.__version__}\n**Author:** {self.__author__}"
         )
 
+    def get_avatar_url(self, user: Union[discord.User, discord.Member]) -> str:
+        if discord.version_info.major == 1:
+            return user.avatar_url
+        return user.display_avatar.url
+
     def __init__(self, bot: Red):
         self.bot: Red = bot
         self.config = Config.get_conf(self, identifier=0x33039392, force_registration=True)
@@ -82,7 +87,7 @@ class GlobalBan(commands.Cog):
                     banned_pages.append(page)
             for idx, page in enumerate(banned_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
-                embed.set_author(name=f"Banned {user} from:", icon_url=self.bot.user.avatar_url)
+                embed.set_author(name=f"Banned {user} from:", icon_url=self.get_avatar_url(self.bot.user))
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(
                     text=f"Page {idx} of {len(banned_guilds)}\nTotal: {len(self.bot.guilds)} servers"
@@ -102,7 +107,7 @@ class GlobalBan(commands.Cog):
             for idx, page in enumerate(couldnt_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
                 embed.set_author(
-                    name=f"Couldn't ban {user} from:", icon_url=self.bot.user.avatar_url
+                    name=f"Couldn't ban {user} from:", icon_url=self.get_avatar_url(self.bot.user)
                 )
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(text=f"Page {idx} of {len(couldnt_ban)}")
@@ -158,7 +163,7 @@ class GlobalBan(commands.Cog):
                     unbanned_pages.append(page)
             for idx, page in enumerate(unbanned_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
-                embed.set_author(name=f"Unbanned {user} from:", icon_url=self.bot.user.avatar_url)
+                embed.set_author(name=f"Unbanned {user} from:", icon_url=self.get_avatar_url(self.bot.user))
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(text=f"Page {idx} of {len(unbanned_guilds)}")
                 unbanned_embeds.append(embed)
@@ -176,7 +181,7 @@ class GlobalBan(commands.Cog):
             for idx, page in enumerate(couldnt_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
                 embed.set_author(
-                    name=f"Couldn't unban {user} from:", icon_url=self.bot.user.avatar_url
+                    name=f"Couldn't unban {user} from:", icon_url=self.get_avatar_url(self.bot.user)
                 )
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(text=f"Page {idx} of {len(couldnt_unban)}")
@@ -306,4 +311,5 @@ class GlobalBan(commands.Cog):
 
 
 async def setup(bot: Red):
-    bot.add_cog(GlobalBan(bot))
+    cog = GlobalBan(bot)
+    await discord.utils.maybe_coroutine(bot.add_cog, cog)

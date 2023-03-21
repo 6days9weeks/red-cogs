@@ -221,7 +221,7 @@ class VanityInStatus(commands.Cog):
         )
 
 
-def setup(bot: Red):
+async def setup(bot: Red):
     cog = VanityInStatus(bot)
-    bot.add_cog(cog)
-    bot.loop.create_task(cog.update_cache())
+    await discord.utils.maybe_coroutine(bot.add_cog, cog)
+    await cog.update_cache()

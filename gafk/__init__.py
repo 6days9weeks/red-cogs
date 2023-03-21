@@ -88,5 +88,6 @@ class AwayFromKeyboard(RedCog):
             )
 
 
-def setup(bot: Red):
-    bot.add_cog(AwayFromKeyboard(bot))
+async def setup(bot: Red):
+    cog = AwayFromKeyboard(bot)
+    await discord.utils.maybe_coroutine(bot.add_cog, cog)

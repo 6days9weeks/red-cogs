@@ -23,8 +23,12 @@ class XCali(commands.Cog):
         self.config.register_guild(enabled=False)
         self.session = aiohttp.ClientSession()
 
-    def cog_unload(self) -> None:
-        self.bot.loop.create_task(self.session.close())
+    if discord.version_info.major >= 2:
+        async def cog_unload(self) -> None:
+            await self.session.close()
+    else:
+        def cog_unload(self) -> None:
+            self.bot.loop.create_task(self.session.close())
 
     def _extract_video_id(self, url: str) -> Optional[str]:
         """
@@ -174,4 +178,5 @@ class XCali(commands.Cog):
 
 
 async def setup(bot: Red) -> None:
-    bot.add_cog(XCali(bot))
+    cog = XCali(bot)
+    await discord.utils.maybe_coroutine(bot.add_cog, cog)
