@@ -1,5 +1,5 @@
 import re
-from typing import List, Pattern
+from typing import List, Pattern, Union
 
 import aiohttp
 import discord

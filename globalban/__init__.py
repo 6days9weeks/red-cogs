@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import discord
 from redbot.core import Config, commands
