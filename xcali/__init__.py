@@ -10,7 +10,7 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 
 from .constants import (TIKTOK_DESKTOP_PATTERN, TIKTOK_MOBILE_PATTERN,
-                        YOUTUBE_PATTERN, ydl)
+                        YOUTUBE_PATTERN, ydl_tok, ydl_yt)
 from .utilities import sync_as_async
 
 
@@ -49,6 +49,10 @@ class XCali(commands.Cog):
             return len(data), discord.File(BytesIO(data), filename)
 
     async def _extract_video_info(self, url: yarl.URL) -> Union[dict[str, Any], None]:  # noqa
+        if "youtube" in str(url.host):
+            ydl = ydl_yt
+        else:
+            ydl = ydl_tok
         info = await sync_as_async(self.bot, ydl.extract_info, str(url), download=False)  # noqa
 
         if not info:
@@ -104,8 +108,12 @@ class XCali(commands.Cog):
             description = f"> Duration: {video_info['duration_string']}\n\n"
             description += f"> Uploaded: {self.format_date(video_info['upload_date'])}\n"  # noqa
             if video_info["description"]:
-                desc = video_info["description"].split("\n")[0]
-                description += f"Description: {desc}"
+                _desc = video_info["description"].split("\n")
+                if len(_desc) > 2:
+                    desc = "".join(_desc[:2])
+                else:
+                    desc = "".join(_desc)
+                embed.add_field(name="Description:", value=desc, inline=False)
             embed.description = description
             embed.set_footer(
                 text=f"❤️ {video_info['like_count']:,} | 💬 {video_info['comment_count']:,} | 📺 {video_info['view_count']:,}"  # noqa
