@@ -99,28 +99,39 @@ class XCali(commands.Cog):
                 return
             if video_info["filesize_approx"] > limit:
                 return
+            video_link = None
+            video_ext = None
+            video_links = video_info["requested_formats"]
+            for link in video_links:
+                if link["video_ext"] != "none" and link["audio_ext"] != "none":
+                    video_link = link
+                    video_ext = link["video_ext"]
+                    break
+            if not video_link:
+                return
             embed = discord.Embed(color=0x2F3136)
             embed.title = video_info["title"]
             embed.set_author(
                 name=video_info["uploader"],
                 url=video_info["uploader_url"],
             )
-            description = f"> Duration: {video_info['duration_string']}\n\n"
-            description += f"> Uploaded: {self.format_date(video_info['upload_date'])}\n"  # noqa
+            description = f"> **Duration:** {video_info['duration_string']}\n\n"
+            description += (
+                f"> **Uploaded:** {self.format_date(video_info['upload_date'])}\n"  # noqa
+            )
             if video_info["description"]:
                 _desc = video_info["description"].split("\n")
                 if len(_desc) > 2:
                     desc = "".join(_desc[:2])
                 else:
                     desc = "".join(_desc)
-                embed.add_field(name="Description:", value=desc, inline=False)
+                embed.add_field(name="**Description:**", value=desc, inline=False)
             embed.description = description
             embed.set_footer(
                 text=f"❤️ {video_info['like_count']:,} | 💬 {video_info['comment_count']:,} | 📺 {video_info['view_count']:,}"  # noqa
             )
             count, dlvideo = await self._download_file(
-                video_info["formats"][-1]["url"],
-                f"yt.{video_info['formats'][-1]['video_ext']}",
+                video_link["url"], f"yt.{video_ext}"
             )  # noqa
             if count > limit:
                 return
