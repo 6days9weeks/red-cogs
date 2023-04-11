@@ -4,8 +4,6 @@ import yt_dlp
 
 ydl = yt_dlp.YoutubeDL({"outtmpl": "buffer/%(id)s.%(ext)s", "quiet": True})
 
-INVIDIOUS_DOMAIN: str = "inv.riverside.rocks"
-
 TIKTOK_MOBILE_PATTERN: re.Pattern[str] = re.compile(
     r"\<?(https?://(?:vt|vm|www)\.tiktok\.com/(?:t/)?[a-zA-Z\d]+\/?)(?:\/\?.*\>?)?\>?"  # noqa
 )

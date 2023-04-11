@@ -1,7 +1,7 @@
 import datetime
 from io import BytesIO
 from typing import Any, Optional, Tuple, Union
-from urllib.parse import urlparse # noqa
+from urllib.parse import urlparse  # noqa
 
 import aiohttp
 import discord
@@ -9,8 +9,8 @@ import yarl
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
-from .constants import (INVIDIOUS_DOMAIN, TIKTOK_DESKTOP_PATTERN,
-                        TIKTOK_MOBILE_PATTERN, YOUTUBE_PATTERN, ydl)
+from .constants import (TIKTOK_DESKTOP_PATTERN, TIKTOK_MOBILE_PATTERN,
+                        YOUTUBE_PATTERN, ydl)
 from .utilities import sync_as_async
 
 
@@ -24,9 +24,12 @@ class XCali(commands.Cog):
         self.session = aiohttp.ClientSession()
 
     if discord.version_info.major >= 2:
+
         async def cog_unload(self) -> None:
             await self.session.close()
+
     else:
+
         def cog_unload(self) -> None:
             self.bot.loop.create_task(self.session.close())
 
@@ -37,20 +40,6 @@ class XCali(commands.Cog):
         match = YOUTUBE_PATTERN.search(url)
         if match:
             return match["id"]
-
-    async def _get_video_info(self, video_id: str) -> Optional[dict]:
-        """
-        Gets the video info from the Invidious API.
-        """
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"  # noqa
-        }
-        async with self.session.get(
-            f"https://{INVIDIOUS_DOMAIN}/api/v1/videos/{video_id}?local=true",
-            headers=headers,
-        ) as response:
-            if response.status == 200:
-                return await response.json()
 
     async def _download_file(self, url: str, filename: str) -> Tuple[int, discord.File]:  # noqa
         async with self.session.get(url, allow_redirects=True, timeout=300) as response:  # noqa
@@ -78,6 +67,13 @@ class XCali(commands.Cog):
         # not found, return the first one
         return video_info["formats"][0]
 
+    def format_date(self, date: str) -> str:
+        year = date[:4]
+        date = date.replace(year, "")
+        month = date[:2]
+        day = date.replace(month, "")
+        return f"{day}/{month}/{year}"
+
     @commands.Cog.listener("on_message")
     async def on_youtube_trigger(self, message: discord.Message) -> None:
         if message.author.bot:
@@ -91,34 +87,33 @@ class XCali(commands.Cog):
             return
         if not await self.config.guild(message.guild).enabled():
             return
+        limit = message.guild.filesize_limit
         async with message.channel.typing():
-            video_info = await self._get_video_info(video_id)
+            url = yarl.URL(f"https://www.youtube.com/watch?v={video_id}")
+            video_info = await self._extract_video_info(url)
             if not video_info:
+                return
+            if video_info["filesize_approx"] > limit:
                 return
             embed = discord.Embed(color=0x2F3136)
             embed.title = video_info["title"]
             embed.set_author(
-                name=video_info["author"],
-                icon_url=video_info["authorThumbnails"][-1]["url"],
-                url=f"https://youtube.com/{video_info['authorUrl']}",
+                name=video_info["uploader"],
+                url=video_info["uploader_url"],
             )
-            embed.description = video_info["description"].split("\n")[0]
+            description = f"> Duration: {video_info['duration_string']}\n\n"
+            description += f"> Uploaded: {self.format_date(video_info['upload_date'])}\n"  # noqa
+            if video_info["description"]:
+                desc = video_info["description"].split("\n")[0]
+                description += f"Description: {desc}"
+            embed.description = description
             embed.set_footer(
-                text=f"views: {video_info['viewCount']:,} | likes: {video_info['likeCount']:,}"  # noqa
+                text=f"❤️ {video_info['like_count']:,} | 💬 {video_info['comment_count']:,} | 📺 {video_info['view_count']:,}"  # noqa
             )
-            urls = []
-            for video_format in video_info["formatStreams"]:
-                if not video_format.get("container") or not video_format.get("encoding"):  # noqa
-                    continue
-                urls.append(video_format)
-            limit = message.guild.filesize_limit
-            video = [i for i in urls if i["container"] == "mp4"]
-            if not video:
-                return
-            video = video[0]
-            if "clen" in video.keys() and int(video["clen"]) > limit:
-                return
-            count, dlvideo = await self._download_file(video["url"], f"yt.{video['container']}")  # noqa
+            count, dlvideo = await self._download_file(
+                video_info["formats"][-1]["url"],
+                f"yt.{video_info['formats'][-1]['video_ext']}",
+            )  # noqa
             if count > limit:
                 return
             await message.channel.send(

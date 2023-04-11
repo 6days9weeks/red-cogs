@@ -41,7 +41,11 @@ class GlobalBan(commands.Cog):
     @commands.is_owner()
     @commands.guild_only()
     async def globalban(
-        self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
+        self,
+        ctx: commands.Context,
+        user: MemberID,
+        *,
+        reason: Optional[ActionReason] = None,
     ) -> None:
         """Ban a user globally from all servers [botname] is in."""
         if not reason:
@@ -87,7 +91,10 @@ class GlobalBan(commands.Cog):
                     banned_pages.append(page)
             for idx, page in enumerate(banned_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
-                embed.set_author(name=f"Banned {user} from:", icon_url=self.get_avatar_url(self.bot.user))
+                embed.set_author(
+                    name=f"Banned {user} from:",
+                    icon_url=self.get_avatar_url(self.bot.user),
+                )
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(
                     text=f"Page {idx} of {len(banned_guilds)}\nTotal: {len(self.bot.guilds)} servers"
@@ -107,7 +114,8 @@ class GlobalBan(commands.Cog):
             for idx, page in enumerate(couldnt_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
                 embed.set_author(
-                    name=f"Couldn't ban {user} from:", icon_url=self.get_avatar_url(self.bot.user)
+                    name=f"Couldn't ban {user} from:",
+                    icon_url=self.get_avatar_url(self.bot.user),
                 )
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(text=f"Page {idx} of {len(couldnt_ban)}")
@@ -118,7 +126,11 @@ class GlobalBan(commands.Cog):
     @commands.is_owner()
     @commands.guild_only()
     async def globalunban(
-        self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
+        self,
+        ctx: commands.Context,
+        user: MemberID,
+        *,
+        reason: Optional[ActionReason] = None,
     ) -> None:
         """Unban a user globally from all servers [botname] is in."""
         if not reason:
@@ -163,7 +175,10 @@ class GlobalBan(commands.Cog):
                     unbanned_pages.append(page)
             for idx, page in enumerate(unbanned_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
-                embed.set_author(name=f"Unbanned {user} from:", icon_url=self.get_avatar_url(self.bot.user))
+                embed.set_author(
+                    name=f"Unbanned {user} from:",
+                    icon_url=self.get_avatar_url(self.bot.user),
+                )
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(text=f"Page {idx} of {len(unbanned_guilds)}")
                 unbanned_embeds.append(embed)
@@ -181,7 +196,8 @@ class GlobalBan(commands.Cog):
             for idx, page in enumerate(couldnt_pages, 1):
                 embed = discord.Embed(color=0x2F3136)
                 embed.set_author(
-                    name=f"Couldn't unban {user} from:", icon_url=self.get_avatar_url(self.bot.user)
+                    name=f"Couldn't unban {user} from:",
+                    icon_url=self.get_avatar_url(self.bot.user),
                 )
                 embed.description = page.replace("/20jaajs0b/", "")
                 embed.set_footer(text=f"Page {idx} of {len(couldnt_unban)}")
@@ -192,7 +208,11 @@ class GlobalBan(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def hardban(
-        self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
+        self,
+        ctx: commands.Context,
+        user: MemberID,
+        *,
+        reason: Optional[ActionReason] = None,
     ) -> None:
         """Hard ban a user from current server."""
         if not reason:
@@ -210,7 +230,11 @@ class GlobalBan(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def hardunban(
-        self, ctx: commands.Context, user: MemberID, *, reason: Optional[ActionReason] = None
+        self,
+        ctx: commands.Context,
+        user: MemberID,
+        *,
+        reason: Optional[ActionReason] = None,
     ) -> None:
         """Unban a hard banned user from current server."""
         if not reason:
@@ -270,7 +294,8 @@ class GlobalBan(commands.Cog):
         if user.id in global_banned:
             try:
                 await guild.ban(
-                    user, reason=global_reason if global_reason else "Global banned by bot owner."
+                    user,
+                    reason=global_reason if global_reason else "Global banned by bot owner.",
                 )
             except (discord.HTTPException, discord.Forbidden) as e:
                 logger.exception(e)

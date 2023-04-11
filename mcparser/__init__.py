@@ -30,9 +30,12 @@ class McParser(commands.Cog):
         self.config.register_guild(**guild_config)
 
     if discord.version_info.major >= 2:
+
         async def cog_unload(self) -> None:
             await self.session.close()
+
     else:
+
         def cog_unload(self) -> None:
             self.bot.loop.create_task(self.session.close())
 
@@ -74,7 +77,9 @@ class McParser(commands.Cog):
                 )
                 for x in data:
                     embed.add_field(
-                        name=x.split()[0], value=x.replace(x.split()[0], ""), inline=False
+                        name=x.split()[0],
+                        value=x.replace(x.split()[0], ""),
+                        inline=False,
                     )
                 embed.set_footer(
                     icon_url=self.get_avatar_url(self.bot.user),
@@ -159,7 +164,9 @@ class McParser(commands.Cog):
         for page in pagify(msg):
             embeds.append(
                 discord.Embed(
-                    description=page, title="Custom Parsers", color=discord.Color.random()
+                    description=page,
+                    title="Custom Parsers",
+                    color=discord.Color.random(),
                 )
             )
         if len(embeds) == 1:
