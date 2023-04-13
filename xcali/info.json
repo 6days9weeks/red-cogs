@@ -8,7 +8,7 @@
         "dia ♡#0666 (696828906191454221)"
     ],
     "required_cogs": {},
-    "requirements": ["yt_dlp"],
+    "requirements": ["yt_dlp", "pytube"],
     "tags": [
         "fun"
     ],

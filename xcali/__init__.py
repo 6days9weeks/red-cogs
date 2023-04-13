@@ -1,16 +1,16 @@
 import datetime
 from io import BytesIO
 from typing import Any, Optional, Tuple, Union
-from urllib.parse import urlparse  # noqa
 
 import aiohttp
 import discord
+import pytube
 import yarl
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
 from .constants import (TIKTOK_DESKTOP_PATTERN, TIKTOK_MOBILE_PATTERN,
-                        YOUTUBE_PATTERN, ydl_tok, ydl_yt)
+                        YOUTUBE_PATTERN, ydl_tok)
 from .utilities import sync_as_async
 
 
@@ -49,16 +49,33 @@ class XCali(commands.Cog):
             return len(data), discord.File(BytesIO(data), filename)
 
     async def _extract_video_info(self, url: yarl.URL) -> Union[dict[str, Any], None]:  # noqa
-        if "youtube" in str(url.host):
-            ydl = ydl_yt
-        else:
-            ydl = ydl_tok
+        ydl = ydl_tok
         info = await sync_as_async(self.bot, ydl.extract_info, str(url), download=False)  # noqa
 
         if not info:
             return
 
         return info
+
+    def _extract_youtube(self, url: str) -> Union[dict[str, Any], None]:
+        """
+        Extracts the video data from a YouTube URL.
+        """
+        obj = pytube.YouTube(url)
+        videos = obj.streams.filter(adaptive=True)
+        if not videos:
+            return None
+        stream = videos.order_by("resolution").desc().first()
+        data = {}
+        data["title"] = stream.title
+        data["uploader"] = obj.author
+        data["uploader_url"] = obj.channel_url
+        data["description"] = obj.description
+        data["views"] = obj.views
+        data["size"] = stream.filesize_approx
+        data["url"] = stream.url
+        data["filename"] = stream.default_filename
+        return data
 
     def find_proper_url(self, video_info: dict) -> str:
         for format in video_info["formats"]:
@@ -93,31 +110,17 @@ class XCali(commands.Cog):
             return
         limit = message.guild.filesize_limit
         async with message.channel.typing():
-            url = yarl.URL(f"https://www.youtube.com/watch?v={video_id}")
-            video_info = await self._extract_video_info(url)
+            url: str = f"https://www.youtube.com/watch?v={video_id}"
+            video_info = await sync_as_async(self.bot, self._extract_youtube, str(url))  # noqa
             if not video_info:
                 return
-            if video_info["filesize_approx"] > limit:
-                return
-            video_link = None
-            video_ext = None
-            video_links = video_info["requested_formats"]
-            for link in video_links:
-                if link["video_ext"] != "none" and link["audio_ext"] != "none":
-                    video_link = link
-                    video_ext = link["video_ext"]
-                    break
-            if not video_link:
+            if video_info["size"] > limit:
                 return
             embed = discord.Embed(color=0x2F3136)
             embed.title = video_info["title"]
             embed.set_author(
                 name=video_info["uploader"],
                 url=video_info["uploader_url"],
-            )
-            description = f"> **Duration:** {video_info['duration_string']}\n\n"
-            description += (
-                f"> **Uploaded:** {self.format_date(video_info['upload_date'])}\n"  # noqa
             )
             if video_info["description"]:
                 _desc = video_info["description"].split("\n")
@@ -126,12 +129,9 @@ class XCali(commands.Cog):
                 else:
                     desc = "".join(_desc)
                 embed.add_field(name="**Description:**", value=desc, inline=False)
-            embed.description = description
-            embed.set_footer(
-                text=f"❤️ {video_info['like_count']:,} | 💬 {video_info['comment_count']:,} | 📺 {video_info['view_count']:,}"  # noqa
-            )
+            embed.set_footer(text=f"📺 {video_info['views']:,}")  # noqa
             count, dlvideo = await self._download_file(
-                video_link["url"], f"yt.{video_ext}"
+                video_info["url"], video_info["filename"]
             )  # noqa
             if count > limit:
                 return
