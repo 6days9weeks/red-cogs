@@ -62,7 +62,7 @@ class XCali(commands.Cog):
         Extracts the video data from a YouTube URL.
         """
         obj = pytube.YouTube(url)
-        videos = obj.streams.filter(adaptive=True)
+        videos = obj.streams.filter(progressive=True)
         if not videos:
             return None
         stream = videos.order_by("resolution").desc().first()
