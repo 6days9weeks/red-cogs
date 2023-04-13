@@ -128,7 +128,7 @@ class XCali(commands.Cog):
                     desc = "".join(_desc[:2])
                 else:
                     desc = "".join(_desc)
-                embed.add_field(name="**Description:**", value=desc, inline=False)
+                embed.description = desc
             embed.set_footer(text=f"📺 {video_info['views']:,}")  # noqa
             count, dlvideo = await self._download_file(
                 video_info["url"], video_info["filename"]
