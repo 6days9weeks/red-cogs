@@ -6,11 +6,12 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
+LISTENER_NAME: str = "on_presence_update" if discord.version_info.major == 2 else "on_member_update"
 
 class VanityInStatus(commands.Cog):
     """Give users a if they have a vanity in their status."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "dia ♡#0666 (696828906191454221)"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -52,7 +53,7 @@ class VanityInStatus(commands.Cog):
                 f"Failed to send message to {channel.name} in {channel.guild.name}/{channel.guild.id}: {str(e)}"
             )
 
-    @commands.Cog.listener("on_member_update")
+    @commands.Cog.listener(LISTENER_NAME)
     async def on_vanity_trigger(self, before: discord.Member, after: discord.Member) -> None:
         if not self.cached:
             await self.update_cache()
