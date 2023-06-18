@@ -65,8 +65,8 @@ class VanityInStatus(commands.Cog):
             return
         if not data["role"] or not data["channel"]:
             return
-        if not "VANITY_URL" in guild.features:
-            return
+        #if not "VANITY_URL" in guild.features:
+            #return
         vanity: str = "/" + self.vanity_cache[guild.id]
         role: discord.Role = guild.get_role(int(data["role"]))
         log_channel: discord.TextChannel = guild.get_channel(int(data["channel"]))
@@ -175,8 +175,8 @@ class VanityInStatus(commands.Cog):
         """Toggle vanity checker for current server on/off."""
         await self.config.guild(ctx.guild).toggled.set(on)
         await self.config.guild(ctx.guild).vanity.set(vanity)
-        if "VANITY_URL" in ctx.guild.features:
-            self.vanity_cache[ctx.guild.id] = vanity
+        #if "VANITY_URL" in ctx.guild.features:
+        self.vanity_cache[ctx.guild.id] = vanity
         await ctx.send(
             f"Vanity status tracking for current server is now {'on' if on else 'off'} and set to {vanity}."
         )
